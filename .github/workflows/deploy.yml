@@ -1,0 +1,27 @@
+name: CD - Continous deployment
+
+on:
+  workflow_run:
+    workflows: ["Docker Build & Push"]  # must match exact name in the other file
+    types: [completed]
+
+jobs:
+
+    deploy:
+        runs-on: self-hosted
+
+        steps:
+         
+            - name: pull latest image
+              run: docker pull ${{ vars.DOCKER_USERNAME }}/github-actions-app:latest
+
+            - name: stop old container
+              run: docker stop github-actions-app || true
+
+            - name: remove old container
+              run: docker rm github-actions-app || true
+
+            - name: run new container
+              run: docker run -d --name github-actions-app -p 5000:5000 ${{ vars.DOCKER_USERNAME }}/github-actions-app:latest
+
+
